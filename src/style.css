@@ -1,0 +1,33 @@
+.App {
+    font-family: sans-serif;
+    text-align: center;
+      
+  }
+  
+  .listMenu {
+    padding: 5px 10px;
+    margin: 5px;
+    background: #bebebe;
+    color: #151515;
+  }
+  .iconCollapse {
+    padding: 5px;
+    cursor: pointer;
+  }
+  
+.main {
+  width: 100%;
+}
+
+.left {
+  width: 300px;
+  float: left;
+}
+
+.right {
+  margin-left: 320px;
+}
+
+.textbox{
+    font-family:serif;
+}
