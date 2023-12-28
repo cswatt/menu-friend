@@ -2,7 +2,8 @@ import React from "react";
 import Nestable from "react-nestable";
 import "./style.css";
 import { parseInput, parseOutput } from "./helpers";
-import TextField from '@mui/material/TextField';
+import { TextField, Button, Snackbar } from '@mui/material';
+
 
 const yaml = require('js-yaml')
 class App extends React.Component{
@@ -10,93 +11,129 @@ class App extends React.Component{
     super(props);
 
     this.state = {
-      itemsTemp: []
+      items: [],
+      leftHelperText: "Paste your YAML here.",
+      rightHelperText: "Clean updated YAML.",
+      output: "",
+      snackOpen: false
     };
 
     this.handleOnChangeSort = this.handleOnChangeSort.bind(this);
-    this.handleUpdate = this.handleUpdate.bind(this);
     this.handleTextChange = this.handleTextChange.bind(this);
-  }
+    this.handleCopyButton = this.handleCopyButton.bind(this);
 
-  handleOnChangeSort(items) {
-    this.setState({
-      itemsTemp: items
-    });
-    this.handleUpdate()
-  }
-
-  handleUpdate() {
-    const { itemsTemp } = this.state;
-    const output = parseOutput(itemsTemp, this.state.apiTemp)
-
-    this.setState({
-      input: output,
-      error: false,
-      errorText: "Regenerated."
-    })
   }
 
   handleTextChange(e){
-    console.log("this counts")
     try{
-    var [main, api] = parseInput(e.target.value)
+      let inputTemp = e.target.value;
+      var [main, api] = parseInput(inputTemp)
     this.setState({
-      itemsTemp: main,
+      items: main,
       apiTemp: api,
       error: false,
-      errorText:"You did it.",
-      input: e.target.value
+      leftHelperText: "Success. Edit this text to regenerate.",
     });
   } catch(e){
-    console.log(e)
+    console.log(this.state)
     this.setState({
       error: true,
-      errorText: e.message
+      leftHelperText: e.message
     });
   }
   }
 
+
+  handleOnChangeSort(temp) {
+
+    const output = parseOutput(temp, this.state.apiTemp)
+    this.setState({
+      output: output,
+      items: temp.items
+    });
+    
+  }
+
+  handleCopyButton() {
+    this.setState({ snackOpen: true})
+    navigator.clipboard.writeText(this.state.output);
+  }
   
   render() {
     return (
-
       <div className="main">
+
+        <div className="justified">
+        <div className="blurb">
+            <h1>Menu Friend</h1>
+            <ol>
+              <li/>Paste your <code>menus.en.yaml</code> file on the left.
+              <li/>Edit the visualization that appears.
+              <li/>Copy the new YAML into your file.
+            </ol>
+            
+          </div>
+        </div>
           
-        <div className="left">
+        <div className="column">
         <TextField
           id="filled-multiline-static"
-          label="menus.en.yaml"
           fullWidth
           multiline
-          rows={20}
-          defaultValue=""
+          rows={10}
           variant="filled"
-          value={this.state.input}
           onChange={this.handleTextChange}
           error={this.state.error}
-          helperText={this.state.errorText}
+          helperText={this.state.leftHelperText}
+        />
+
+        
+        </div>
+
+        <div className="column">
+          <div className="right">
+        <TextField
+          id="filled-multiline-static"
+          fullWidth
+          multiline
+          rows={10}
+          variant="filled"
+          value={this.state.output}
+          helperText={this.state.rightHelperText}
 
         />
         </div>
+        <div className="button">
+        <Button
+           variant="contained"
+           onClick={this.handleCopyButton}
+        >
+          Copy
+        </Button>
+        <Snackbar
+          open={this.state.snackOpen}
+          onClose={() => this.setState({ snackOpen: false})}
+          autoHideDuration={2000}
+          message="Copied to clipboard"
+        />
+        </div>
+        
+        </div>
        
        
-        <div className="right">
-          <div className="blurb">
-            <h1>Menu Friend</h1>
-            Paste your <code>menus.en.yaml</code> file on the left.
-          </div>
+        <div className="justified">
+          
 
         <Nestable
           collapsed={false}
           maxDepth={3}
-          items={this.state.itemsTemp}
+          items={this.state.items}
           renderItem={({ item, collapseIcon }) => (
             <div className="listMenu">
               {collapseIcon}
               {item.name}
               &nbsp;&nbsp;
               <small>{item.url}</small>
-
             </div>
           )}
           onChange={this.handleOnChangeSort}
@@ -110,9 +147,6 @@ class App extends React.Component{
         />
         </div>
         </div>
-
-
-      
 
     );
   }

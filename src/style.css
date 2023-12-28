@@ -17,17 +17,33 @@
   
 .main {
   width: 100%;
+  /* margin: 2%; */
 }
 
-.left {
-  width: 300px;
-  float: left;
+.column {
+    float: left;
+    width: 45%;
+    margin: 2%
 }
 
 .right {
-  margin-left: 320px;
+    margin-left:2%;
+}
+
+.justified{
+    margin: 2%;
+    clear: both;
+}
+
+.button{
+    float: right;
+    margin-top: 5px;
 }
 
 .textbox{
     font-family:serif;
+}
+
+.MuiFormHelperText-root{
+    height: 0;
 }
