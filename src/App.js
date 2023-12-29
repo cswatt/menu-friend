@@ -4,8 +4,6 @@ import "./style.css";
 import { parseInput, parseOutput } from "./helpers";
 import { TextField, Button, Snackbar } from '@mui/material';
 
-
-const yaml = require('js-yaml')
 class App extends React.Component{
   constructor(props) {
     super(props);
