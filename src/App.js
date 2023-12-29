@@ -1,8 +1,8 @@
 import React from "react";
-import Nestable from "react-nestable";
 import "./style.css";
 import { parseInput, parseOutput } from "./helpers";
 import { TextField, Button, Snackbar } from '@mui/material';
+import Nest from "./Nest";
 
 class App extends React.Component{
   constructor(props) {
@@ -43,11 +43,10 @@ class App extends React.Component{
 
 
   handleOnChangeSort(temp) {
-
     const output = parseOutput(temp, this.state.apiTemp)
     this.setState({
       output: output,
-      items: temp.items
+      items: temp
     });
     
   }
@@ -64,12 +63,10 @@ class App extends React.Component{
         <div className="justified">
         <div className="blurb">
             <h1>Menu Friend</h1>
-            <ol>
-              <li/>Paste your <code>menus.en.yaml</code> file on the left.
-              <li/>Edit the visualization that appears.
-              <li/>Copy the new YAML into your file.
-            </ol>
             
+              1. Paste your <code>menus.en.yaml</code> file on the left.<br/>
+              2. Edit the visualization that appears. Note that the displayed weight doesn't change (TODO)<br/>
+              3. Copy the new YAML into your file.
           </div>
         </div>
           
@@ -85,7 +82,6 @@ class App extends React.Component{
           helperText={this.state.leftHelperText}
         />
 
-        
         </div>
 
         <div className="column">
@@ -118,32 +114,10 @@ class App extends React.Component{
         
         </div>
        
-       
-        <div className="justified">
-          
-
-        <Nestable
-          collapsed={false}
-          maxDepth={3}
+        <Nest
           items={this.state.items}
-          renderItem={({ item, collapseIcon }) => (
-            <div className="listMenu">
-              {collapseIcon}
-              {item.name}
-              &nbsp;&nbsp;
-              <small>{item.url}</small>
-            </div>
-          )}
           onChange={this.handleOnChangeSort}
-          renderCollapseIcon={({ isCollapsed }) =>
-            isCollapsed ? (
-              <span className="iconCollapse">+</span>
-            ) : (
-              <span className="iconCollapse">-</span>
-            )
-          }
         />
-        </div>
         </div>
 
     );

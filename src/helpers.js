@@ -17,7 +17,7 @@ const parseInput = (input) => {
                 entry['id'] = items[i]['identifier']
                 if (typeof items[i]['identifier'] === 'undefined'){
                     entry['id'] = items[i]['name']
-                    console.log(items[i]['name'] + " has no identifier.")
+                    // console.log(items[i]['name'] + " has no identifier.")
                 }
                 // Nestable also wants top-levels to have parent:0
                 if (typeof items[i]['parent'] === 'undefined'){
@@ -122,8 +122,8 @@ const generateFlat = (arr0 = []) => {
 }
 const parseOutput = (items, api) => {
     const output = new Object();
-    
-    const flatMenu = generateFlat(items.items);
+    console.log(items)
+    const flatMenu = generateFlat(items);
     for (var i in flatMenu){
         if (flatMenu[i]['parent'] == 0){
           delete flatMenu[i]['parent']
