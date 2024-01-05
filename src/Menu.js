@@ -1,9 +1,42 @@
 const yaml = require('js-yaml');
 
-const parseInput = (input) => {
-    var result = [];
+class Menu {
+  blob;
 
-    let inputBlob = yaml.load(input);
+  constructor(blob) {
+    this.blob = blob;
+    [this.main, this.api] = this.parseBlob(blob)
+    this.nest = this.createNest(this.main)
+    this.flat = this.createFlat(this.nest)
+  }
+
+  updateFromNest(nest) {
+    // this.nest = nest;
+    this.flat = this.createFlat(nest)
+    this.nest = this.createNest([...this.flat])
+  }
+
+  updateItem(item, changes) {
+    this.flat = this.createFlat(this.nest)
+    let itemIndex = this.flat.findIndex((obj => obj.id ==item.id))
+    for (let [k, v] of Object.entries(changes)){
+      this.flat[itemIndex][k] = v
+      if (k == "identifier"){
+        this.flat[itemIndex]['id'] = v
+        let children = this.flat.filter((obj) => obj.parent == item.identifier)
+        for (let i in children){
+          let ind = this.flat.findIndex((obj => obj.id == children[i].id))
+          this.flat[ind]['parent'] = v
+        }
+      }
+    }
+    this.nest = this.createNest([...this.flat])
+    console.log(this.nest)
+  }
+
+  parseBlob (_blob) {
+    let result = [];
+    let inputBlob = yaml.load(_blob);
     // check if we've got a 'main'
     if (inputBlob.hasOwnProperty('main')){
         let items = inputBlob.main
@@ -31,30 +64,32 @@ const parseInput = (input) => {
       else {
         throw new Error('Invalid yaml');
       }
-      return [createNestedMenu(result), inputBlob.api]
-}
+      return [result, inputBlob.api]
 
-const createNestedMenu = (arr = [], parent = 0) => {
-    let fix = [];
-  
+  };
+
+  createNest (arr = [], parent = 0) {
+    let nest = [];
     for (let i in arr.sort((a, b) => {return Number(a.weight) - Number(b.weight)})) {
       if (arr.hasOwnProperty(i)) {
         if (arr[i].parent === parent) {
-          let children = createNestedMenu(arr, arr[i].id);
+          let temp = Object();
+          for (let j in arr[i]){
+            temp[j] = arr[i][j];
+          }
+          let children = this.createNest(arr, arr[i].id);
           if (children.length) {
-            arr[i].children = children;
+            temp.children = children;
           }
   
-          fix.push(arr[i]);
+          nest.push(temp);
         }
       }
     }
-  
-    return fix;
+    return nest;
   };
-  
 
-const generateFlat = (arr0 = []) => {
+  createFlat(arr0) {
     let fix=[]
     for (let i in arr0) {
         let fixTemp = Object();
@@ -97,7 +132,7 @@ const generateFlat = (arr0 = []) => {
                         fixTemp['parent'] = parentTemp;
                         fix.push(fixTemp)
 
-
+                        if (Array.isArray(arr2[m].children)) {
                         if (arr2[m]['children'].length > 0){
                             let arr3 = arr2[m].children,
                                 parentTemp = arr2[m]['id'];
@@ -112,30 +147,33 @@ const generateFlat = (arr0 = []) => {
                                 fixTemp['parent'] = parentTemp;
                                 fix.push(fixTemp)
                             }
-                        } 
+                        }
+                      } 
                     }
                 }
             }
         }
     }
     return fix;
-}
-const parseOutput = (items, api) => {
-    const output = new Object();
-    console.log(items)
-    const flatMenu = generateFlat(items);
-    for (var i in flatMenu){
-        if (flatMenu[i]['parent'] == 0){
-          delete flatMenu[i]['parent']
-        }
-        delete flatMenu[i]['id']
+  };
+
+  parseOutput() {
+    let output = new Object();
+    let temp = [...this.flat];
+    for (var i in temp){
+      if (temp[i]['parent'] == 0) {
+        delete temp[i]['parent']
+      }
+      delete temp[i]['id']
     }
 
-    output['main'] = flatMenu
-    output['api'] = api
+    output['main'] = temp
+    output['api'] = this.api
 
     return yaml.dump(output)
+  }
+
+
 }
-  
-  export { parseInput, parseOutput };
-  
+
+export default Menu;

@@ -1,124 +1,145 @@
 import React from "react";
 import "./style.css";
-import { parseInput, parseOutput } from "./helpers";
-import { TextField, Button, Snackbar } from '@mui/material';
-import Nest from "./Nest";
+import NestMenu from "./NestMenu";
+import Input from "./Input";
+import Output from "./Output";
+import ItemPanel from "./ItemPanel"
 
-class App extends React.Component{
+const columnStyle = {
+  float: "left",
+  width: "46%",
+  margin: "1%"
+};
+
+class App extends React.Component {
   constructor(props) {
     super(props);
+    
 
     this.state = {
+      menuObject: false,
+      panelOpen: false,
+      panelMode: "",
       items: [],
-      leftHelperText: "Paste your YAML here.",
-      rightHelperText: "Clean updated YAML.",
+      currentItem: [],
       output: "",
-      snackOpen: false
+      editOpen: false,
+      addOpen: false
     };
 
-    this.handleOnChangeSort = this.handleOnChangeSort.bind(this);
+    this.deleteItem = this.deleteItem.bind(this);
+
     this.handleTextChange = this.handleTextChange.bind(this);
-    this.handleCopyButton = this.handleCopyButton.bind(this);
-
-  }
-
-  handleTextChange(e){
-    try{
-      let inputTemp = e.target.value;
-      var [main, api] = parseInput(inputTemp)
-    this.setState({
-      items: main,
-      apiTemp: api,
-      error: false,
-      leftHelperText: "Success. Edit this text to regenerate.",
-    });
-  } catch(e){
-    console.log(this.state)
-    this.setState({
-      error: true,
-      leftHelperText: e.message
-    });
-  }
-  }
-
-
-  handleOnChangeSort(temp) {
-    const output = parseOutput(temp, this.state.apiTemp)
-    this.setState({
-      output: output,
-      items: temp
-    });
+    this.handleOnChangeSort = this.handleOnChangeSort.bind(this);
     
+    this.handleEditOpen = this.handleEditOpen.bind(this);
+    this.handleAddOpen = this.handleAddOpen.bind(this);
+    this.openPanel = this.openPanel.bind(this);
+    this.closePanel = this.closePanel.bind(this);
+    this.handlePanelSubmit = this.handlePanelSubmit.bind(this);
+
+    this.updateAll = this.updateAll.bind(this);
+
   }
 
-  handleCopyButton() {
-    this.setState({ snackOpen: true})
-    navigator.clipboard.writeText(this.state.output);
+
+  deleteItem(item){
+    console.log(item)
   }
-  
+
+  // passed to Input component
+  handleTextChange(menu) {
+    this.updateAll(menu)
+  }
+
+  // passed to NestMenu component
+  handleOnChangeSort(e) {
+    let menu = this.state.menuObject
+    menu.updateFromNest(e)
+    this.updateAll(menu)
+  }
+
+  handleEditOpen(item) {
+    this.openPanel("edit", item)
+  }
+
+  handleAddOpen(item){
+    this.openPanel("add", item)
+  }
+
+  openPanel(mode, item){
+    this.setState({
+      panelOpen: true,
+      currentItem: item,
+      panelMode: mode
+    })
+  }
+
+  // passed to ItemPanel
+  closePanel(){
+    this.setState({panelOpen: false})
+  }
+
+  handlePanelSubmit(mode, item, changes){
+    let menu = this.state.menuObject
+    menu.updateItem(item, changes)
+    this.updateAll(menu)
+  }
+
+  // update everybody
+  updateAll(_menu) {
+    let menu = _menu
+    this.setState({
+      menuObject: menu,
+      items: menu.nest,
+      apiTemp: menu.api,
+      output: menu.parseOutput()
+    })
+  }
+
   render() {
     return (
       <div className="main">
 
         <div className="justified">
-        <div className="blurb">
+          <div className="blurb">
             <h1>Menu Friend</h1>
-            
-              1. Paste your <code>menus.en.yaml</code> file on the left.<br/>
-              2. Edit the visualization that appears. Note that the displayed weight doesn't change (TODO)<br/>
-              3. Copy the new YAML into your file.
+
+            1. Paste your <code>menus.en.yaml</code> file on the left.<br />
+            2. Edit the visualization that appears. Currently, you can edit items.<br />
+            3. Copy the new YAML into your file.
           </div>
         </div>
-          
-        <div className="column">
-        <TextField
-          id="filled-multiline-static"
-          fullWidth
-          multiline
-          rows={10}
-          variant="filled"
-          onChange={this.handleTextChange}
-          error={this.state.error}
-          helperText={this.state.leftHelperText}
-        />
 
+        <div style={({ ...columnStyle })}>
+          <Input
+            onChange={this.handleTextChange}
+            error={this.state.error}
+          />
         </div>
 
-        <div className="column">
-          <div className="right">
-        <TextField
-          id="filled-multiline-static"
-          fullWidth
-          multiline
-          rows={10}
-          variant="filled"
-          value={this.state.output}
-          helperText={this.state.rightHelperText}
+        <div style={({ ...columnStyle })}>
+          <Output
+            output={this.state.output}
+          />
+        </div>
 
-        />
-        </div>
-        <div className="button">
-        <Button
-           variant="contained"
-           onClick={this.handleCopyButton}
-        >
-          Copy
-        </Button>
-        <Snackbar
-          open={this.state.snackOpen}
-          onClose={() => this.setState({ snackOpen: false})}
-          autoHideDuration={2000}
-          message="Copied to clipboard"
-        />
-        </div>
-        
-        </div>
-       
-        <Nest
+        <NestMenu
           items={this.state.items}
           onChange={this.handleOnChangeSort}
+          handleEdit={this.handleEditOpen}
+          handleAdd={this.handleAddOpen}
+          handleDelete={this.deleteItem}
         />
-        </div>
+
+        <ItemPanel
+          mode={this.state.panelMode}
+          item={this.state.currentItem}
+          open={this.state.panelOpen}
+          onClose={this.closePanel}
+          submit={this.handlePanelSubmit}
+        />
+      </div>
 
     );
   }

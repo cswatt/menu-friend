@@ -20,16 +20,6 @@
   /* margin: 2%; */
 }
 
-.column {
-    float: left;
-    width: 45%;
-    margin: 2%
-}
-
-.right {
-    margin-left:2%;
-}
-
 .justified{
     margin: 2%;
     clear: both;
