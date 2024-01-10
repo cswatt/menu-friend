@@ -1,7 +1,7 @@
 import { DragIndicator, Add, Remove, Edit, AddCircle, Delete } from '@mui/icons-material';
 import Nestable from "react-nestable";
 import React from "react";
-import { IconButton, Button } from "@mui/material";
+import { IconButton, Button, Tooltip } from "@mui/material";
 
 // styles
 const nestItem = {
@@ -78,24 +78,30 @@ class NestItem extends React.Component {
         
           {this.state.isActive && (
           <div style={{ ...rowIcon }}>
-          <IconButton
-            size="small"
-            onClick={this.props.handleEdit}
-          >
-            <Edit/>
-          </IconButton>
+          <Tooltip title="Edit" placement="top">
+            <IconButton
+              size="small"
+              onClick={this.props.handleEdit}
+            >
+              <Edit/>
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Add item after this" placement="top">
           <IconButton
             size="small"
             onClick={this.props.handleAdd}
           >
             <AddCircle/>
           </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete" placement="top">
           <IconButton
             size="small"
             onClick={this.props.handleDelete}
           >
             <Delete/>
           </IconButton>
+          </Tooltip>
           </div>
           )}
         <div style={{ ...nestItemRight }}>

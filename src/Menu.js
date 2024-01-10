@@ -6,32 +6,67 @@ class Menu {
   constructor(blob) {
     this.blob = blob;
     [this.main, this.api] = this.parseBlob(blob)
-    this.nest = this.createNest(this.main)
-    this.flat = this.createFlat(this.nest)
+    this.flat = this.createFlat(this.createNest(this.main))
+    this.nest = this.createNest(this.flat)
   }
 
   updateFromNest(nest) {
-    // this.nest = nest;
     this.flat = this.createFlat(nest)
-    this.nest = this.createNest([...this.flat])
+    this.nest = this.createNest(this.flat)
   }
 
-  updateItem(item, changes) {
-    this.flat = this.createFlat(this.nest)
-    let itemIndex = this.flat.findIndex((obj => obj.id ==item.id))
-    for (let [k, v] of Object.entries(changes)){
+  editItem(item, changes) {
+    let itemIndex = this.flat.findIndex((obj => obj.id === item.id))
+    for (const [k, v] of Object.entries(changes)){
       this.flat[itemIndex][k] = v
-      if (k == "identifier"){
+      if (k === "identifier"){
         this.flat[itemIndex]['id'] = v
-        let children = this.flat.filter((obj) => obj.parent == item.identifier)
+        console.log(this.flat[itemIndex]['id'])
+        let children = this.flat.filter((obj) => obj.parent === item.identifier)
         for (let i in children){
-          let ind = this.flat.findIndex((obj => obj.id == children[i].id))
+          let ind = this.flat.findIndex((obj => obj.id === children[i].id))
           this.flat[ind]['parent'] = v
+          console.log(this.flat[itemIndex]['id'])
         }
       }
     }
+    this.nest = this.createNest(this.flat)
+
+  }
+
+  addItem(item, changes) {
+    let newItem = {};
+    for (let [k, v] of Object.entries(changes)){
+      newItem[k] = v
+    }
+    newItem['parent'] = item.parent
+    newItem['id'] = newItem['identifier']
+    newItem['weight'] = Number(item.weight) + 1
+    let siblings = this.flat.filter((obj) => obj.parent === item.identifier)
+    for (let i in siblings){
+      if (Number(siblings[i].weight) > Number(item.weight)){
+        siblings[i].weight = Number(siblings[i].weight) + 1;
+      }
+    }
+    this.flat.push(newItem)
+    this.nest = this.createNest(this.flat)
+    this.updateFromNest(this.nest)
+   
+  }
+
+  deleteItem(item){
+
+    let itemIndex = this.flat.findIndex((obj => obj.identifier === item.identifier))
+    for (let i in this.flat){
+      if (this.flat.hasOwnProperty(i) && this.flat[i].parent === item.identifier){
+        this.deleteItem(this.flat[i])
+      }
+    }
+
+    this.flat = this.flat.slice(0, itemIndex).concat(this.flat.slice(itemIndex + 1))
     this.nest = this.createNest([...this.flat])
-    console.log(this.nest)
+    this.updateFromNest(this.nest)
+
   }
 
   parseBlob (_blob) {
@@ -42,7 +77,7 @@ class Menu {
         let items = inputBlob.main
         for (const i in items){
             if (items.hasOwnProperty(i)){
-                let entry = new Object();
+                let entry = {};
                 for (const j in items[i]){
                     entry[j] = items[i][j]
                 }
@@ -68,10 +103,12 @@ class Menu {
 
   };
 
-  createNest (arr = [], parent = 0) {
+  createNest (_arr = [], parent = 0) {
     let nest = [];
+    let arr = JSON.parse(JSON.stringify(_arr))
     for (let i in arr.sort((a, b) => {return Number(a.weight) - Number(b.weight)})) {
       if (arr.hasOwnProperty(i)) {
+
         if (arr[i].parent === parent) {
           let temp = Object();
           for (let j in arr[i]){
@@ -89,12 +126,13 @@ class Menu {
     return nest;
   };
 
-  createFlat(arr0) {
+  createFlat(_arr0) {
+    let arr0 = JSON.parse(JSON.stringify(_arr0))
     let fix=[]
     for (let i in arr0) {
         let fixTemp = Object();
         for (const j in arr0[i]){
-            if (j != 'children'){
+            if (j !== 'children'){
                 fixTemp[j] = arr0[i][j]
             }
         }
@@ -110,7 +148,7 @@ class Menu {
             for (let k in arr1){
                 let fixTemp = Object();
                 for (const l in arr1[k]){
-                    if (l != 'children'){
+                    if (l !== 'children'){
                         fixTemp[l] = arr1[k][l]
                     }
                 }
@@ -122,9 +160,9 @@ class Menu {
                     let arr2 = arr1[k].children,
                         parentTemp = arr1[k]['id'];
                     for (let m in arr2){
-                        let fixTemp = Object();
+                        let fixTemp = {};
                         for (const n in arr2[m]){
-                            if (n != 'children'){
+                            if (n !== 'children'){
                                 fixTemp[n] = arr2[m][n]
                             }
                         }
@@ -137,9 +175,9 @@ class Menu {
                             let arr3 = arr2[m].children,
                                 parentTemp = arr2[m]['id'];
                             for (let o in arr3){
-                                let fixTemp = Object();
+                                let fixTemp = {};
                                 for (const p in arr3[o]){
-                                    if (p != 'children'){
+                                    if (p !== 'children'){
                                         fixTemp[p] = arr3[o][p]
                                     }
                                 }
@@ -158,10 +196,10 @@ class Menu {
   };
 
   parseOutput() {
-    let output = new Object();
-    let temp = [...this.flat];
+    let output = {};
+    let temp = JSON.parse(JSON.stringify(this.flat))
     for (var i in temp){
-      if (temp[i]['parent'] == 0) {
+      if (temp[i]['parent'] === 0) {
         delete temp[i]['parent']
       }
       delete temp[i]['id']
@@ -171,6 +209,11 @@ class Menu {
     output['api'] = this.api
 
     return yaml.dump(output)
+  }
+
+  getIdentifiers() {
+    let identifiers = new Set(this.flat.map((obj) => obj.identifier))
+    return identifiers;
   }
 
 
