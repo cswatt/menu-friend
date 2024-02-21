@@ -184,6 +184,24 @@ class Menu {
                                 fixTemp['weight'] = (Number(m)+1)*100 + (Number(o)+1)
                                 fixTemp['parent'] = parentTemp;
                                 fix.push(fixTemp)
+
+                                if (Array.isArray(arr3[o].children)) {
+                                  if (arr3[o]['children'].length > 0){
+                                      let arr4 = arr3[o].children,
+                                          parentTemp = arr3[o]['id'];
+                                      for (let q in arr4){
+                                          let fixTemp = {};
+                                          for (const r in arr4[q]){
+                                              if (r !== 'children'){
+                                                  fixTemp[r] = arr4[q][r]
+                                              }
+                                          }
+                                          fixTemp['weight'] = (Number(o)+1)*100 + (Number(q)+1)
+                                          fixTemp['parent'] = parentTemp;
+                                          fix.push(fixTemp)
+                                      }
+                                  }
+                                  } 
                             }
                         }
                       } 
