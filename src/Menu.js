@@ -5,7 +5,7 @@ class Menu {
 
   constructor(blob) {
     this.blob = blob;
-    [this.main, this.api] = this.parseBlob(blob)
+    this.main = this.parseBlob(blob)
     this.flat = this.createFlat(this.createNest(this.main))
     this.nest = this.createNest(this.flat)
   }
@@ -73,33 +73,35 @@ class Menu {
     let result = [];
     let inputBlob = yaml.load(_blob);
     // check if we've got a 'main'
-    if (inputBlob.hasOwnProperty('main')){
-        let items = inputBlob.main
-        for (const i in items){
-            if (items.hasOwnProperty(i)){
-                let entry = {};
-                for (const j in items[i]){
-                    entry[j] = items[i][j]
+    if (inputBlob.hasOwnProperty('menu')){
+        if (inputBlob.menu.hasOwnProperty('main')){
+            let items = inputBlob.menu.main
+            for (const i in items){
+                if (items.hasOwnProperty(i)){
+                    let entry = {};
+                    for (const j in items[i]){
+                        entry[j] = items[i][j]
+                    }
+                    // Nestable wants everything to have an id
+                    entry['id'] = items[i]['identifier']
+                    if (typeof items[i]['identifier'] === 'undefined'){
+                        entry['id'] = items[i]['name']
+                        // console.log(items[i]['name'] + " has no identifier.")
+                    }
+                    // Nestable also wants top-levels to have parent:0
+                    if (typeof items[i]['parent'] === 'undefined'){
+                        entry['parent'] = 0
+                    }
+                    // we'll strip these out later
+                    result.push(entry)
                 }
-                // Nestable wants everything to have an id
-                entry['id'] = items[i]['identifier']
-                if (typeof items[i]['identifier'] === 'undefined'){
-                    entry['id'] = items[i]['name']
-                    // console.log(items[i]['name'] + " has no identifier.")
                 }
-                // Nestable also wants top-levels to have parent:0
-                if (typeof items[i]['parent'] === 'undefined'){
-                    entry['parent'] = 0
-                }
-                // we'll strip these out later
-                result.push(entry)
-            }
-            }
+               }
       }
       else {
         throw new Error('Invalid yaml');
       }
-      return [result, inputBlob.api]
+      return result
 
   };
 
@@ -222,10 +224,9 @@ class Menu {
       }
       delete temp[i]['id']
     }
-
-    output['main'] = temp
-    output['api'] = this.api
-
+    
+    output['main'] = {};
+    output['main']['menu'] = temp
     return yaml.dump(output)
   }
 

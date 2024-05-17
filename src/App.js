@@ -107,7 +107,7 @@ class App extends React.Component {
           <div className="blurb">
             <h1>Menu Friend</h1>
 
-            1. Paste your <code>menus.en.yaml</code> file on the left.<br />
+            1. Paste your <code>main.en.yaml</code> file on the left.<br />
             2. Edit the visualization that appears.<br />
             3. Copy the new YAML into your file.
           </div>
