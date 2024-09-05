@@ -225,8 +225,8 @@ class Menu {
       delete temp[i]['id']
     }
     
-    output['main'] = {};
-    output['main']['menu'] = temp
+    output['menu'] = {};
+    output['menu']['main'] = temp
     return yaml.dump(output)
   }
 
